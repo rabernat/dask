@@ -61,6 +61,11 @@ from __future__ import absolute_import, division, print_function
 from .core import get_dependencies, reverse_dict, get_deps  # noqa: F401
 from .utils_test import add, inc  # noqa: F401
 
+def sorted2(seq, **kwargs):
+    if len(seq) > 1000:
+        return list(seq)
+    else:
+        return sorted(seq, **kwargs)
 
 def order(dsk, dependencies=None):
     """ Order nodes in dask graph
@@ -108,7 +113,7 @@ def order(dsk, dependencies=None):
     i = 0
 
     stack = [k for k, v in dependents.items() if not v]
-    stack = sorted(stack, key=total_dependencies.get)
+    stack = sorted2(stack, key=total_dependencies.get)
 
     while stack:
         item = stack.pop()
@@ -119,7 +124,7 @@ def order(dsk, dependencies=None):
         deps = waiting[item]
         if deps:
             stack.append(item)
-            stack.extend(sorted(deps, key=dependencies_key))
+            stack.extend(sorted2(deps, key=dependencies_key))
             continue
 
         result[item] = i
@@ -129,7 +134,7 @@ def order(dsk, dependencies=None):
             waiting[dep].discard(item)
 
         deps = [d for d in dependents[item] if d not in result]
-        stack.extend(sorted(deps, key=dependents_key, reverse=True))
+        stack.extend(sorted2(deps, key=dependents_key, reverse=True))
 
     return result
 
